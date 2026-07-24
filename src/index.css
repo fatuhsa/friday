@@ -1,9 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-background: #101516;
+  --color-neon-mint: #54E6D4;
+}
 
 @layer base {
   body {
-    @apply bg-background text-white font-sans antialiased;
+    background-color: var(--color-background);
+    color: white;
+    font-family: sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
