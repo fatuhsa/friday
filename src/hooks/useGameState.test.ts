@@ -66,6 +66,23 @@ describe('useGameState', () => {
     expect(result.current.collection[0].id).toBe(2);
   });
 
+  it('removes only the first matching occurrence of duplicate characters', () => {
+    const { result } = renderHook(() => useGameState());
+    const char1: Character = { id: 1, name: 'Gojo', imageUrl: 'url1', rarity: 'SSR' };
+    const char2: Character = { id: 1, name: 'Gojo', imageUrl: 'url1', rarity: 'SSR' };
+
+    act(() => {
+      result.current.addCharacters([char1, char2]);
+    });
+    expect(result.current.collection).toHaveLength(2);
+
+    act(() => {
+      result.current.removeCharacter(1);
+    });
+    expect(result.current.collection).toHaveLength(1);
+    expect(result.current.collection[0]).toEqual(char1);
+  });
+
   it('claims star reward', () => {
     const { result } = renderHook(() => useGameState());
     expect(result.current.hasClaimedStarReward).toBe(false);

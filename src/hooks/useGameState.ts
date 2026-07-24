@@ -78,7 +78,12 @@ export function useGameState() {
 
   const addCharacters = (chars: Character[]) => setCollection((c) => [...c, ...chars]);
 
-  const removeCharacter = (id: number) => setCollection((c) => c.filter((char) => char.id !== id));
+  const removeCharacter = (id: number) =>
+    setCollection((c) => {
+      const index = c.findIndex((char) => char.id === id);
+      if (index === -1) return c;
+      return [...c.slice(0, index), ...c.slice(index + 1)];
+    });
 
   const claimStarReward = () => setHasClaimedStarReward(true);
 

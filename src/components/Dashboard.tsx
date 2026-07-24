@@ -6,7 +6,7 @@ interface Props {
 
 export function Dashboard({ gems, hasClaimedStarReward, onClaimStarReward }: Props) {
   return (
-    <div className="flex justify-between items-center p-4 bg-black border-b border-gray-800">
+    <div className="flex justify-between items-center p-4 bg-[#101516] border-b border-gray-800">
       <div className="flex items-center gap-2">
         <span className="text-2xl">💎</span>
         <span className="text-xl font-bold text-neon-mint">{gems}</span>
