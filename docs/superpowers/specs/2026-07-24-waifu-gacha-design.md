@@ -6,6 +6,7 @@ A web-based gacha game where users pull anime characters using the Jikan (MyAnim
 ## UI & Aesthetics
 - **Framework:** React + Vite
 - **UI Library:** Shadcn UI (requires Tailwind CSS)
+- **Responsive Strategy:** Mobile-First Design. Layouts, modals, and interactions must be optimized for mobile screens first and gracefully scale up to desktop.
 - **Color Palette:**
   - **Background (Carbon Black):** `#101516`
   - **Accent (Neon Mint):** `#54E6D4`
