@@ -1,15 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Character } from '../types';
 
 export function useGameState() {
   const [gems, setGems] = useState<number>(() => {
     const saved = localStorage.getItem('gems');
-    return saved !== null ? parseInt(saved, 10) : 2000;
+    if (saved !== null) {
+      const parsed = parseInt(saved, 10);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+    return 2000;
   });
-  
+
+  const gemsRef = useRef(gems);
+  gemsRef.current = gems;
+
   const [collection, setCollection] = useState<Character[]>(() => {
     const saved = localStorage.getItem('collection');
-    return saved !== null ? JSON.parse(saved) : [];
+    if (saved !== null) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
   });
 
   const [hasClaimedStarReward, setHasClaimedStarReward] = useState<boolean>(() => {
@@ -18,7 +35,15 @@ export function useGameState() {
 
   const [answeredTriviaIds, setAnsweredTriviaIds] = useState<number[]>(() => {
     const saved = localStorage.getItem('trivia');
-    return saved !== null ? JSON.parse(saved) : [];
+    if (saved !== null) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
   });
 
   useEffect(() => {
@@ -37,11 +62,15 @@ export function useGameState() {
     localStorage.setItem('trivia', JSON.stringify(answeredTriviaIds));
   }, [answeredTriviaIds]);
 
-  const addGems = (amount: number) => setGems((g) => g + amount);
+  const addGems = (amount: number) => {
+    gemsRef.current += amount;
+    setGems(gemsRef.current);
+  };
 
   const deductGems = (amount: number) => {
-    if (gems >= amount) {
-      setGems((g) => g - amount);
+    if (gemsRef.current >= amount) {
+      gemsRef.current -= amount;
+      setGems(gemsRef.current);
       return true;
     }
     return false;
@@ -53,7 +82,8 @@ export function useGameState() {
 
   const claimStarReward = () => setHasClaimedStarReward(true);
 
-  const markTriviaAnswered = (id: number) => setAnsweredTriviaIds((t) => [...t, id]);
+  const markTriviaAnswered = (id: number) =>
+    setAnsweredTriviaIds((t) => (t.includes(id) ? t : [...t, id]));
 
   return {
     gems,
@@ -68,3 +98,4 @@ export function useGameState() {
     markTriviaAnswered,
   };
 }
+

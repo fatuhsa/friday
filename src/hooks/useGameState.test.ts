@@ -100,4 +100,55 @@ describe('useGameState', () => {
     expect(result.current.hasClaimedStarReward).toBe(true);
     expect(result.current.answeredTriviaIds).toEqual([42]);
   });
+
+  it('falls back to default empty array when JSON in localStorage is invalid', () => {
+    localStorage.setItem('collection', 'invalid json');
+    localStorage.setItem('trivia', '{ not an array }');
+
+    const { result } = renderHook(() => useGameState());
+
+    expect(result.current.collection).toEqual([]);
+    expect(result.current.answeredTriviaIds).toEqual([]);
+  });
+
+  it('handles multiple sequential deductGems calls without stale closure issues', () => {
+    const { result } = renderHook(() => useGameState());
+    // Initial gems: 2000
+    let res1 = false;
+    let res2 = false;
+    let res3 = false;
+
+    act(() => {
+      res1 = result.current.deductGems(1000);
+      res2 = result.current.deductGems(800);
+      res3 = result.current.deductGems(300); // 1000 + 800 + 300 = 2100 > 2000, should fail
+    });
+
+    expect(res1).toBe(true);
+    expect(res2).toBe(true);
+    expect(res3).toBe(false);
+    expect(result.current.gems).toBe(200);
+  });
+
+  it('falls back to 2000 gems when localStorage contains NaN string', () => {
+    localStorage.setItem('gems', 'not-a-number');
+
+    const { result } = renderHook(() => useGameState());
+
+    expect(result.current.gems).toBe(2000);
+  });
+
+  it('prevents duplicate entries in answeredTriviaIds', () => {
+    const { result } = renderHook(() => useGameState());
+
+    act(() => {
+      result.current.markTriviaAnswered(101);
+      result.current.markTriviaAnswered(101);
+      result.current.markTriviaAnswered(102);
+      result.current.markTriviaAnswered(101);
+    });
+
+    expect(result.current.answeredTriviaIds).toEqual([101, 102]);
+  });
 });
+
