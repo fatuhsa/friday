@@ -1,6 +1,7 @@
 import { useGameState } from './hooks/useGameState';
 import { Dashboard } from './components/Dashboard';
 import { Inventory } from './components/Inventory';
+import { GachaScreen } from './components/GachaScreen';
 import type { Character } from './types';
 
 export default function App() {
@@ -14,14 +15,15 @@ export default function App() {
   };
 
   const handleStar = () => {
-    window.open('https://github.com', '_blank');
+    window.open('https://github.com', '_blank', 'noopener,noreferrer');
     state.addGems(500);
     state.claimStarReward();
   };
 
   return (
-    <div className="min-h-screen flex flex-col pb-20">
+    <div className="min-h-screen flex flex-col pb-20 bg-[#101516] text-white">
       <Dashboard gems={state.gems} hasClaimedStarReward={state.hasClaimedStarReward} onClaimStarReward={handleStar} />
+      <GachaScreen gems={state.gems} onDeductGems={state.deductGems} onCharactersPulled={state.addCharacters} />
       <div className="flex-grow">
         <Inventory collection={state.collection} onRecycle={handleRecycle} />
       </div>
