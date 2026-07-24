@@ -34,6 +34,7 @@ A web-based gacha game where users pull anime characters using the Jikan (MyAnim
   - SR = +50 Gems
   - R = +15 Gems
 - **Star Repo Reward:** User can click a "Star Repo" button (links to GitHub). Upon clicking, they receive a one-time reward of +500 Gems.
+- **Anime Trivia (Earning Gems):** Users can answer general anime knowledge questions (e.g., "Siapa karakter utama One Piece?"). Each correct answer gives +100 Gems. Questions will be curated and stored locally.
 
 ### Storage
 - `gems` (number), `collection` (array of character objects), and `hasClaimedStarReward` (boolean) are persisted in `localStorage`.
