@@ -1,0 +1,47 @@
+# Waifu Gacha Game Design Specification
+
+## Overview
+A web-based gacha game where users pull anime characters using the Jikan (MyAnimeList) API. Features a sleek, modern UI, a rarity system based on character popularity, a recycle mechanic to refund gems, and a "Star Repo" reward.
+
+## UI & Aesthetics
+- **Framework:** React + Vite
+- **UI Library:** Shadcn UI (requires Tailwind CSS)
+- **Color Palette:**
+  - **Background (Carbon Black):** `#101516`
+  - **Accent (Neon Mint):** `#54E6D4`
+- **Vibe:** Sleek, premium, dark mode, glassmorphism elements, neon glows for rarities (SSR = Gold/Mint Glow, SR = Purple, R = Blue).
+
+## Architecture & Components
+- `App`: Main container, handles state initialization from `localStorage` (gems, collection, hasStarredRepo).
+- `Dashboard`: Top bar showing current Gem balance and the "Star Repo" button.
+- `GachaScreen`: Main area with the "Pull" button and gacha reveal animations.
+- `Inventory`: Grid displaying collected `CharacterCard`s.
+- `CharacterCard`: Displays character image, name, rarity, and a "Recycle" button.
+
+## Data Flow & Mechanics
+### Rarity & Jikan API
+- **SSR (5% chance):** Top 1-25 characters. Fetched via `/characters?order_by=favorites&sort=desc&limit=25`.
+- **SR (20% chance):** Top 26-250 characters.
+- **R (75% chance):** Random character fetched via `/random/character`.
+
+### Currency & Economy
+- **Starting Balance:** 1000 Gems.
+- **Cost:** 1 Pull = 160 Gems.
+- **Recycle Waifu:**
+  - SSR = +100 Gems
+  - SR = +50 Gems
+  - R = +15 Gems
+- **Star Repo Reward:** User can click a "Star Repo" button (links to GitHub). Upon clicking, they receive a one-time reward of +500 Gems.
+
+### Storage
+- `gems` (number), `collection` (array of character objects), and `hasClaimedStarReward` (boolean) are persisted in `localStorage`.
+
+## Error Handling & Rate Limits
+- Jikan API has a strict 3 requests/second rate limit.
+- **Cooldown:** Implement a 1-second debounce/cooldown on the "Pull" button to prevent rate limit errors.
+- **Error UI:** If API fails, display a Shadcn `Toast` notification (e.g., "Network error, returning your gems...").
+
+## Testing
+- Ensure gacha math (5% SSR, etc.) works without hitting the API constantly.
+- Verify `localStorage` successfully saves and restores state upon page refresh.
+- Check that the one-time Star Repo reward cannot be claimed twice.
