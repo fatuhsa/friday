@@ -14,7 +14,7 @@ A web-based gacha game where users pull anime characters using the Jikan (MyAnim
 ## Architecture & Components
 - `App`: Main container, handles state initialization from `localStorage` (gems, collection, hasStarredRepo).
 - `Dashboard`: Top bar showing current Gem balance and the "Star Repo" button.
-- `GachaScreen`: Main area with the "Pull" button and gacha reveal animations.
+- `GachaScreen`: Main area with "Pull x1", "Pull x10" buttons, gacha reveal animations, and a "Drop Rates" modal/tooltip explaining the odds (SSR 5%, SR 20%, R 75%).
 - `Inventory`: Grid displaying collected `CharacterCard`s.
 - `CharacterCard`: Displays character image, name, rarity, and a "Recycle" button.
 
@@ -25,8 +25,10 @@ A web-based gacha game where users pull anime characters using the Jikan (MyAnim
 - **R (75% chance):** Random character fetched via `/random/character`.
 
 ### Currency & Economy
-- **Starting Balance:** 1000 Gems.
-- **Cost:** 1 Pull = 160 Gems.
+- **Starting Balance:** 2000 Gems.
+- **Cost:** 
+  - 1 Pull = 160 Gems.
+  - 10 Pulls = 1600 Gems.
 - **Recycle Waifu:**
   - SSR = +100 Gems
   - SR = +50 Gems
@@ -38,7 +40,8 @@ A web-based gacha game where users pull anime characters using the Jikan (MyAnim
 
 ## Error Handling & Rate Limits
 - Jikan API has a strict 3 requests/second rate limit.
-- **Cooldown:** Implement a 1-second debounce/cooldown on the "Pull" button to prevent rate limit errors.
+- **Multi-Pull Rate Limit Strategy:** For x10 pulls, instead of 10 separate requests, we will fetch a paginated list of characters once (which returns 25 characters) and randomly pick our results from that local list to avoid rate limit bans.
+- **Cooldown:** Implement a 1-second debounce/cooldown on the "Pull" buttons to prevent rate limit errors.
 - **Error UI:** If API fails, display a Shadcn `Toast` notification (e.g., "Network error, returning your gems...").
 
 ## Testing
