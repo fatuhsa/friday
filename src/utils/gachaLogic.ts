@@ -65,14 +65,15 @@ export async function fetchCharacters(rarities: ('SSR' | 'SR' | 'R')[]): Promise
   }
 
   const FALLBACK_SSR_SR = [
-    { mal_id: 1, name: 'Spike Spiegel', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/4/50197.jpg' } } },
-    { mal_id: 40, name: 'Luffy Monkey D.', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/9/310307.jpg' } } },
-    { mal_id: 417, name: 'Levi', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/2/284122.jpg' } } },
-    { mal_id: 71, name: 'Gintoki Sakata', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/15/239313.jpg' } } },
+    { mal_id: 34662, name: 'Makise Kurisu', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/11/286916.jpg' } } },
+    { mal_id: 118763, name: 'Rem', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/3/315180.jpg' } } },
+    { mal_id: 117225, name: 'Megumin', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/14/301226.jpg' } } },
+    { mal_id: 155835, name: 'Zero Two', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/11/344933.jpg' } } },
+    { mal_id: 38005, name: 'Saber', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/7/289255.jpg' } } },
   ];
   const FALLBACK_R = [
-    { mal_id: 200, name: 'Random Ninja', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/6/275338.jpg' } } },
-    { mal_id: 201, name: 'Townsfolk A', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/14/258525.jpg' } } },
+    { mal_id: 200, name: 'Random Maid', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/16/252971.jpg' } } },
+    { mal_id: 201, name: 'Random Schoolgirl', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/2/255087.jpg' } } },
   ];
 
   for (const rarity of rarities) {
