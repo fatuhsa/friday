@@ -33,9 +33,12 @@ export default function App() {
     <div className="min-h-screen flex flex-col pb-20 bg-[#101516] text-white">
       <Dashboard gems={state.gems} hasClaimedStarReward={state.hasClaimedStarReward} onClaimStarReward={handleStar} />
       
-      <div className="bg-gray-900 border-b border-gray-800 text-center py-2">
+      <div className="bg-gray-900 border-b border-gray-800 text-center py-2 flex justify-center gap-4">
         <button onClick={() => setShowTrivia(true)} className="text-sm font-bold text-neon-mint border border-neon-mint px-4 py-1 rounded-full hover:bg-neon-mint hover:text-black transition-colors cursor-pointer">
           📝 Play Trivia (+100 💎)
+        </button>
+        <button onClick={() => state.addGems(10000)} className="text-sm font-bold text-purple-400 border border-purple-400 px-4 py-1 rounded-full hover:bg-purple-400 hover:text-white transition-colors cursor-pointer">
+          🛠️ Dev (+10k 💎)
         </button>
       </div>
 
