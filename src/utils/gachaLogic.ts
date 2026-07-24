@@ -64,9 +64,23 @@ export async function fetchCharacters(rarities: ('SSR' | 'SR' | 'R')[]): Promise
     }
   }
 
+  const FALLBACK_SSR_SR = [
+    { mal_id: 1, name: 'Spike Spiegel', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/4/50197.jpg' } } },
+    { mal_id: 40, name: 'Luffy Monkey D.', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/9/310307.jpg' } } },
+    { mal_id: 417, name: 'Levi', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/2/284122.jpg' } } },
+    { mal_id: 71, name: 'Gintoki Sakata', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/15/239313.jpg' } } },
+  ];
+  const FALLBACK_R = [
+    { mal_id: 200, name: 'Random Ninja', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/6/275338.jpg' } } },
+    { mal_id: 201, name: 'Townsfolk A', images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/characters/14/258525.jpg' } } },
+  ];
+
   for (const rarity of rarities) {
-    const pool = (rarity === 'SSR' || rarity === 'SR') ? topChars : randomChars;
-    const char = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : { mal_id: Date.now(), name: 'Unknown', images: { jpg: { image_url: '' } } };
+    let pool = (rarity === 'SSR' || rarity === 'SR') ? topChars : randomChars;
+    if (pool.length === 0) {
+      pool = (rarity === 'SSR' || rarity === 'SR') ? FALLBACK_SSR_SR : FALLBACK_R;
+    }
+    const char = pool[Math.floor(Math.random() * pool.length)];
     results.push({
       id: char.mal_id + Math.random(), // ensure unique ID for multiple same chars
       name: char.name,
