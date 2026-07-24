@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { rollRarity, fetchCharacters } from './gachaLogic';
+import { rollRarity, fetchCharacters, resetRateLimitTimer } from './gachaLogic';
 
 describe('gachaLogic', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    resetRateLimitTimer();
   });
 
   describe('rollRarity', () => {
@@ -33,6 +34,15 @@ describe('gachaLogic', () => {
   });
 
   describe('fetchCharacters', () => {
+    it('returns empty array when rarities is empty ([]) and does not make fetch calls', async () => {
+      const globalFetch = vi.fn();
+      vi.stubGlobal('fetch', globalFetch);
+
+      const result = await fetchCharacters([]);
+      expect(result).toEqual([]);
+      expect(globalFetch).not.toHaveBeenCalled();
+    });
+
     it('fetches top characters for SSR and SR rarities', async () => {
       const mockTopData = {
         data: [
@@ -42,13 +52,14 @@ describe('gachaLogic', () => {
       };
 
       const globalFetch = vi.fn().mockResolvedValue({
+        ok: true,
         json: async () => mockTopData,
       });
       vi.stubGlobal('fetch', globalFetch);
 
       const result = await fetchCharacters(['SSR', 'SR']);
 
-      expect(globalFetch).toHaveBeenCalledWith('https://api.jikan.moe/v4/characters?order_by=favorites&sort=desc&limit=25');
+      expect(globalFetch).toHaveBeenCalledWith('https://api.jikan.moe/v4/characters?order_by=favorites&sort=desc&limit=25', undefined);
       expect(result).toHaveLength(2);
       expect(result[0].rarity).toBe('SSR');
       expect(result[1].rarity).toBe('SR');
@@ -64,16 +75,36 @@ describe('gachaLogic', () => {
       };
 
       const globalFetch = vi.fn().mockResolvedValue({
+        ok: true,
         json: async () => mockRandomData,
       });
       vi.stubGlobal('fetch', globalFetch);
 
       const result = await fetchCharacters(['R']);
 
-      expect(globalFetch).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/api\.jikan\.moe\/v4\/characters\?page=\d+$/));
+      expect(globalFetch).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/api\.jikan\.moe\/v4\/characters\?page=\d+$/), undefined);
       expect(result).toHaveLength(1);
       expect(result[0].rarity).toBe('R');
       expect(result[0].name).toBe('Random Char');
+    });
+
+    it('handles non-200 HTTP response gracefully with fallback character', async () => {
+      const globalFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+      });
+      vi.stubGlobal('fetch', globalFetch);
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const result = await fetchCharacters(['SSR', 'R']);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('Unknown');
+      expect(result[0].rarity).toBe('SSR');
+      expect(result[1].name).toBe('Unknown');
+      expect(result[1].rarity).toBe('R');
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     it('handles fetch network error gracefully with fallback character', async () => {
@@ -92,3 +123,4 @@ describe('gachaLogic', () => {
     });
   });
 });
+
