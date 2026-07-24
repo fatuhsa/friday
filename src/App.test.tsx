@@ -55,7 +55,7 @@ describe('App Component', () => {
 
     fireEvent.click(starBtn);
 
-    expect(openSpy).toHaveBeenCalledWith('https://github.com', '_blank');
+    expect(openSpy).toHaveBeenCalledWith('https://github.com', '_blank', 'noopener,noreferrer');
     expect(screen.getByText('2500')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Star Repo/i })).not.toBeInTheDocument();
 
