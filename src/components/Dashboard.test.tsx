@@ -70,6 +70,16 @@ describe('Inventory Component', () => {
     expect(screen.getByText('Char One')).toBeInTheDocument();
     expect(screen.getByText('Char Two')).toBeInTheDocument();
   });
+
+  it('renders duplicate character cards without key conflicts', () => {
+    const collection: Character[] = [
+      { id: 1, name: 'Char One', imageUrl: 'url1', rarity: 'SSR' },
+      { id: 1, name: 'Char One', imageUrl: 'url1', rarity: 'SSR' },
+    ];
+    render(<Inventory collection={collection} onRecycle={vi.fn()} />);
+
+    expect(screen.getAllByText('Char One')).toHaveLength(2);
+  });
 });
 
 describe('App Integration', () => {
