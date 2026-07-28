@@ -10,6 +10,7 @@ import type { Character } from './types';
 export default function App() {
   const state = useGameState();
   const [showTrivia, setShowTrivia] = useState(false);
+  const [recycleTarget, setRecycleTarget] = useState<Character | null>(null);
   const [seeding, setSeeding] = useState(true);
   const [seedProgress, setSeedProgress] = useState(0);
   const [seedError, setSeedError] = useState('');
@@ -36,11 +37,15 @@ export default function App() {
     })();
   }, [startSeed]);
 
-  const handleRecycle = (char: Character) => {
-    state.removeCharacter(char.id);
-    if (char.rarity === 'SSR') state.addGems(100);
-    else if (char.rarity === 'SR') state.addGems(50);
+  const handleRecycle = (char: Character) => setRecycleTarget(char);
+
+  const confirmRecycle = () => {
+    if (!recycleTarget) return;
+    state.removeCharacter(recycleTarget.id);
+    if (recycleTarget.rarity === 'SSR') state.addGems(100);
+    else if (recycleTarget.rarity === 'SR') state.addGems(50);
     else state.addGems(15);
+    setRecycleTarget(null);
   };
 
   const handleStar = () => {
@@ -87,7 +92,7 @@ export default function App() {
       <Dashboard gems={state.gems} hasClaimedStarReward={state.hasClaimedStarReward} onClaimStarReward={handleStar} />
 
       <div className="bg-surface border-b border-border text-center py-2 flex justify-center gap-3 px-4">
-        <button onClick={() => setShowTrivia(true)} className="text-xs font-bold text-neon-mint border border-neon-mint px-4 py-2 rounded-full hover:bg-neon-mint hover:text-black transition-colors cursor-pointer min-h-[44px]">
+        <button onClick={() => setShowTrivia(true)} disabled={state.answeredTriviaIds.length >= 30} className="text-xs font-bold text-neon-mint border border-neon-mint px-4 py-2 rounded-full hover:bg-neon-mint hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer min-h-[44px]">
           Trivia +100
         </button>
         <button onClick={() => state.addGems(10000)} className="text-xs font-bold text-neon-purple border border-neon-purple px-4 py-2 rounded-full hover:bg-neon-purple hover:text-white transition-colors cursor-pointer min-h-[44px]">
@@ -107,6 +112,33 @@ export default function App() {
           onCorrect={handleTriviaSuccess}
           onClose={() => setShowTrivia(false)}
         />
+      )}
+
+      {recycleTarget && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm text-center">
+            <h2 className="font-heading text-lg text-neon-mint mb-4">Recycle Character?</h2>
+            <p className="text-gray-300 mb-2">Recycle <strong>{recycleTarget.name}</strong> for</p>
+            <p className="text-neon-mint font-bold text-xl mb-6">
+              +{recycleTarget.rarity === 'SSR' ? 100 : recycleTarget.rarity === 'SR' ? 50 : 15} Gems
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRecycleTarget(null)}
+                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg cursor-pointer transition-colors min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRecycle}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold cursor-pointer transition-colors min-h-[44px]"
+                data-testid="confirm-recycle"
+              >
+                Recycle
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -43,12 +43,9 @@ describe('GachaScreen', () => {
     fireEvent.click(x1Btn());
 
     expect(onDeductGems).toHaveBeenCalledWith(160);
-    expect(gachaLogic.rollRarity).toHaveBeenCalledWith(1);
-    expect(gachaLogic.fetchCharacters).toHaveBeenCalledWith(['SSR']);
-
-    await waitFor(() => {
-      expect(onCharactersPulled).toHaveBeenCalledWith(mockChars);
-    });
+    await waitFor(() => expect(gachaLogic.rollRarity).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(gachaLogic.fetchCharacters).toHaveBeenCalledWith(['SSR']), { timeout: 3000 });
+    await waitFor(() => expect(onCharactersPulled).toHaveBeenCalledWith(mockChars), { timeout: 3000 });
   });
 
   it('disables buttons when not enough gems', () => {

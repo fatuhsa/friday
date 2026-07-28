@@ -47,6 +47,8 @@ describe('App Component', () => {
 
     const recycleBtns = screen.getAllByRole('button', { name: /Recycle/i });
     fireEvent.click(recycleBtns[0]);
+    await waitFor(() => expect(screen.getByText('Recycle Character?')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('confirm-recycle'));
     await waitFor(() => expect(screen.queryByText('Char A')).not.toBeInTheDocument());
     expect(screen.getByText('Char B')).toBeInTheDocument();
   });

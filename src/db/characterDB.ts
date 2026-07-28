@@ -67,46 +67,78 @@ interface AnilistChar {
   gender: string;
 }
 
+const FALLBACK_POOL: StoredChar[] = [
+  { id: 1, mal_id: 88572, name: 'Emilia', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b88572-IzTwXEHSobRs.jpg', rank: 1, source: 'favorites' },
+  { id: 2, mal_id: 40881, name: 'Mikasa Ackerman', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b40881-F3gr1PkreDvj.png', rank: 2, source: 'favorites' },
+  { id: 3, mal_id: 34470, name: 'Kurisu Makise', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b34470-Jw2LXZBL5R8i.png', rank: 3, source: 'favorites' },
+  { id: 4, mal_id: 137080, name: 'Makima', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b137080-UHcynYNjb5ZU.png', rank: 4, source: 'favorites' },
+  { id: 5, mal_id: 127222, name: 'Mai Sakurajima', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b127222-Jh5hhP7vZ7s1.png', rank: 5, source: 'favorites' },
+  { id: 6, mal_id: 176754, name: 'Frieren', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b176754-PCnpqIOkjhFk.png', rank: 6, source: 'favorites' },
+  { id: 7, mal_id: 126824, name: 'Maomao', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b126824-MqsCncTO1qpv.png', rank: 7, source: 'favorites' },
+  { id: 8, mal_id: 120649, name: 'Kaguya Shinomiya', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b120649-NPaWaIpWy60E.png', rank: 8, source: 'favorites' },
+  { id: 9, mal_id: 90169, name: 'Violet Evergarden', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b90169-4wr1Zehnsac8.png', rank: 9, source: 'favorites' },
+  { id: 10, mal_id: 137079, name: 'Power', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b137079-6yLEUYR3bmpr.png', rank: 10, source: 'favorites' },
+  { id: 11, mal_id: 500, name: 'Sakura Matou', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b500-NQrLbnBr1sDv.png', rank: 11, source: 'favorites' },
+  { id: 12, mal_id: 89361, name: 'Megumin', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b89361-tq8PQQ4MmF0M.png', rank: 12, source: 'favorites' },
+  { id: 13, mal_id: 133676, name: 'Marin Kitagawa', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b133676-kV2czE3C8Qls.png', rank: 13, source: 'favorites' },
+  { id: 14, mal_id: 121103, name: 'Chika Fujiwara', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b121103-UGLxT8utLPnq.png', rank: 14, source: 'favorites' },
+  { id: 15, mal_id: 88575, name: 'Rem', imageUrl: 'https://s4.anilist.co/file/anilistcdn/character/large/b88575-Ayu8UPDA8NS6.png', rank: 15, source: 'favorites' },
+];
+
 export async function seedPool(onProgress: (done: number, total: number) => void): Promise<void> {
   const db = await openDB();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_CHARS, 'readwrite');
-    tx.objectStore(STORE_CHARS).clear();
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
 
-  let total = 0;
-  const target = 200;
-  let page = 1;
-
-  while (total < target) {
-    const res = await fetch('https://graphql.anilist.co', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: ANILIST_QUERY, variables: { page } }),
-    });
-    if (!res.ok) throw new Error(`AniList error ${res.status}`);
-    const data = await res.json();
-    const chars: AnilistChar[] = data?.data?.Page?.characters || [];
-    if (chars.length === 0) break;
-
-    const females = chars.filter((c) => c.gender === 'Female' && c.image?.large);
-    if (females.length === 0) { page++; continue; }
-
-    const tx = db.transaction(STORE_CHARS, 'readwrite');
-    const store = tx.objectStore(STORE_CHARS);
-    for (const c of females) {
-      if (total >= target) break;
-      store.add({ mal_id: c.id, name: c.name.full, imageUrl: c.image.large, rank: total + 1, source: 'favorites' });
-      total++;
-    }
+  try {
     await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_CHARS, 'readwrite');
+      tx.objectStore(STORE_CHARS).clear();
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
-    onProgress(total, target);
-    page++;
+
+    let total = 0;
+    const target = 200;
+    let page = 1;
+
+    while (total < target) {
+      const res = await fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: ANILIST_QUERY, variables: { page } }),
+      });
+      if (!res.ok) throw new Error(`AniList error ${res.status}`);
+      const data = await res.json();
+      const chars: AnilistChar[] = data?.data?.Page?.characters || [];
+      if (chars.length === 0) break;
+
+      const females = chars.filter((c) => c.gender === 'Female' && c.image?.large);
+      if (females.length === 0) { page++; continue; }
+
+      const tx = db.transaction(STORE_CHARS, 'readwrite');
+      const store = tx.objectStore(STORE_CHARS);
+      for (const c of females) {
+        if (total >= target) break;
+        store.add({ mal_id: c.id, name: c.name.full, imageUrl: c.image.large, rank: total + 1, source: 'favorites' });
+        total++;
+      }
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      onProgress(total, target);
+      page++;
+    }
+  } catch (e) {
+    for (const c of FALLBACK_POOL) {
+      const tx = db.transaction(STORE_CHARS, 'readwrite');
+      tx.objectStore(STORE_CHARS).add({ mal_id: c.mal_id, name: c.name, imageUrl: c.imageUrl, rank: c.rank, source: c.source });
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      onProgress(c.rank, FALLBACK_POOL.length);
+    }
+    throw new Error(`Seed failed, used ${FALLBACK_POOL.length} local fallbacks. Error: ${e instanceof Error ? e.message : e}`);
   }
 
   db.close();
@@ -214,7 +246,6 @@ export async function getRandomTrivia(answeredIds: number[]): Promise<TriviaQues
   db.close();
 
   const unanswered = all.filter((q) => !answeredIds.includes(q.id));
-  const pool = unanswered.length > 0 ? unanswered : all;
-  if (pool.length === 0) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (unanswered.length === 0) return null;
+  return unanswered[Math.floor(Math.random() * unanswered.length)];
 }

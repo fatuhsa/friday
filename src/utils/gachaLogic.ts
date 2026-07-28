@@ -2,7 +2,14 @@ import type { Character } from '../types';
 import { pullFromPool } from '../db/characterDB';
 import type { StoredChar } from '../db/characterDB';
 
-let _charId = 0;
+let _charId = (() => {
+  const saved = localStorage.getItem('charIdCounter');
+  return saved ? parseInt(saved, 10) || 0 : 0;
+})();
+
+function saveCharId() {
+  localStorage.setItem('charIdCounter', _charId.toString());
+}
 
 export function resetRateLimitTimer(): void {}
 
@@ -50,10 +57,12 @@ export async function fetchCharacters(rarities: ('SSR' | 'SR' | 'R')[]): Promise
     });
   }
 
-  return pool.map((c) => ({
+  const chars = pool.map((c) => ({
     id: _charId++,
     name: c.name,
     imageUrl: c.imageUrl,
     rarity: rarities[pool.indexOf(c)] || 'R',
   }));
+  saveCharId();
+  return chars;
 }
