@@ -79,7 +79,7 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
               style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="w-full aspect-square rounded bg-[#0A0B1A] flex items-center justify-center overflow-hidden">
-                <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
               <p className="text-[8px] text-white truncate mt-0.5">{c.name}</p>
               <span className={`text-[7px] font-bold ${c.rarity === 'SSR' ? 'text-neon-mint' : c.rarity === 'SR' ? 'text-purple-400' : 'text-blue-400'}`}>{c.rarity}</span>

@@ -16,7 +16,7 @@ export function CharacterCard({ character, onRecycle }: Props) {
 
   return (
     <div className={`bg-[#101516] rounded-xl overflow-hidden border p-2 flex flex-col ${glow}`}>
-      <img src={imgFailed ? PLACEHOLDER : character.imageUrl} alt={character.name} className="w-full h-48 object-cover rounded" onError={() => setImgFailed(true)} />
+      <img src={imgFailed ? PLACEHOLDER : character.imageUrl} alt={character.name} className="w-full h-48 object-cover rounded" loading="lazy" onError={() => setImgFailed(true)} />
       <div className="mt-2 text-center flex-grow">
         <h3 className="text-white font-bold text-sm truncate">{character.name}</h3>
         <span className={`text-xs font-bold ${character.rarity === 'SSR' ? 'text-neon-mint' : character.rarity === 'SR' ? 'text-purple-400' : 'text-blue-400'}`}>
