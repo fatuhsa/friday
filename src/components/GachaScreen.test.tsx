@@ -14,14 +14,17 @@ describe('GachaScreen', () => {
     vi.spyOn(window, 'alert').mockImplementation(() => {});
   });
 
+  const x1Btn = () => screen.getByRole('button', { name: /Pull x1 (?!0)/ });
+  const x10Btn = () => screen.getByRole('button', { name: /Pull x10/ });
+
   it('renders correctly', () => {
-    render(<GachaScreen gems={2000} onDeductGems={vi.fn()} onCharactersPulled={vi.fn()} />);
-    expect(screen.getByText('Pull x1 (160 💎)')).toBeInTheDocument();
-    expect(screen.getByText('Pull x10 (1600 💎)')).toBeInTheDocument();
+    render(<GachaScreen gems={2000} onDeductGems={vi.fn()} onAddGems={vi.fn()} onCharactersPulled={vi.fn()} />);
+    expect(x1Btn()).toBeInTheDocument();
+    expect(x10Btn()).toBeInTheDocument();
   });
 
   it('toggles drop rates', () => {
-    render(<GachaScreen gems={2000} onDeductGems={vi.fn()} onCharactersPulled={vi.fn()} />);
+    render(<GachaScreen gems={2000} onDeductGems={vi.fn()} onAddGems={vi.fn()} onCharactersPulled={vi.fn()} />);
     expect(screen.queryByTestId('drop-rates')).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('View Drop Rates'));
     expect(screen.getByTestId('drop-rates')).toBeInTheDocument();
@@ -31,26 +34,26 @@ describe('GachaScreen', () => {
     const onDeductGems = vi.fn().mockReturnValue(true);
     const onCharactersPulled = vi.fn();
     const mockChars = [{ id: 1, name: 'Waifu', rarity: 'SSR', image: 'url' }];
-    
+
     vi.mocked(gachaLogic.rollRarity).mockReturnValue(['SSR']);
     vi.mocked(gachaLogic.fetchCharacters).mockResolvedValue(mockChars as any);
 
-    render(<GachaScreen gems={2000} onDeductGems={onDeductGems} onCharactersPulled={onCharactersPulled} />);
-    
-    fireEvent.click(screen.getByText('Pull x1 (160 💎)'));
-    
+    render(<GachaScreen gems={2000} onDeductGems={onDeductGems} onAddGems={vi.fn()} onCharactersPulled={onCharactersPulled} />);
+
+    fireEvent.click(x1Btn());
+
     expect(onDeductGems).toHaveBeenCalledWith(160);
     expect(gachaLogic.rollRarity).toHaveBeenCalledWith(1);
     expect(gachaLogic.fetchCharacters).toHaveBeenCalledWith(['SSR']);
-    
+
     await waitFor(() => {
       expect(onCharactersPulled).toHaveBeenCalledWith(mockChars);
     });
   });
 
   it('disables buttons when not enough gems', () => {
-    render(<GachaScreen gems={100} onDeductGems={vi.fn()} onCharactersPulled={vi.fn()} />);
-    expect(screen.getByText('Pull x1 (160 💎)')).toBeDisabled();
-    expect(screen.getByText('Pull x10 (1600 💎)')).toBeDisabled();
+    render(<GachaScreen gems={100} onDeductGems={vi.fn()} onAddGems={vi.fn()} onCharactersPulled={vi.fn()} />);
+    expect(x1Btn()).toBeDisabled();
+    expect(x10Btn()).toBeDisabled();
   });
 });

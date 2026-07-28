@@ -1,16 +1,19 @@
 import { useState } from 'react';
+import { Coins } from '@phosphor-icons/react';
 import { rollRarity, fetchCharacters } from '../utils/gachaLogic';
 import type { Character } from '../types';
 
 interface Props {
   gems: number;
   onDeductGems: (amount: number) => boolean;
+  onAddGems: (amount: number) => void;
   onCharactersPulled: (chars: Character[]) => void;
 }
 
-export function GachaScreen({ gems, onDeductGems, onCharactersPulled }: Props) {
+export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled }: Props) {
   const [loading, setLoading] = useState(false);
   const [showRates, setShowRates] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handlePull = async (count: number, cost: number) => {
     if (loading) return;
@@ -20,12 +23,14 @@ export function GachaScreen({ gems, onDeductGems, onCharactersPulled }: Props) {
     }
     
     setLoading(true);
+    setErrorMsg('');
     try {
       const rarities = rollRarity(count);
       const newChars = await fetchCharacters(rarities);
       onCharactersPulled(newChars);
-    } catch (e) {
-      alert("Network error fetching characters");
+    } catch {
+      onAddGems(cost);
+      setErrorMsg('API error — gems refunded');
     } finally {
       setLoading(false);
     }
@@ -39,14 +44,14 @@ export function GachaScreen({ gems, onDeductGems, onCharactersPulled }: Props) {
           onClick={() => handlePull(1, 160)}
           className="bg-neon-mint text-black px-6 py-3 rounded-xl font-bold disabled:opacity-50 cursor-pointer"
         >
-          {loading ? 'Pulling...' : 'Pull x1 (160 💎)'}
+          {loading ? 'Pulling...' : <span className="inline-flex items-center gap-1.5">Pull x1 <Coins weight="fill" className="w-4 h-4" /> 160</span>}
         </button>
         <button 
           disabled={loading || gems < 1600}
           onClick={() => handlePull(10, 1600)}
           className="bg-neon-mint text-black px-6 py-3 rounded-xl font-bold disabled:opacity-50 cursor-pointer"
         >
-           {loading ? 'Pulling...' : 'Pull x10 (1600 💎)'}
+           {loading ? 'Pulling...' : <span className="inline-flex items-center gap-1.5">Pull x10 <Coins weight="fill" className="w-4 h-4" /> 1600</span>}
         </button>
       </div>
       
@@ -60,6 +65,9 @@ export function GachaScreen({ gems, onDeductGems, onCharactersPulled }: Props) {
           </div>
         )}
       </div>
+      {errorMsg && (
+        <p className="text-center mt-2 text-sm text-red-400">{errorMsg}</p>
+      )}
     </div>
   );
 }

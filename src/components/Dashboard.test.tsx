@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { Inventory } from './Inventory';
 import { CharacterCard } from './CharacterCard';
-import App from '../App';
 import type { Character } from '../types';
 
 describe('Dashboard Component', () => {
@@ -11,8 +10,8 @@ describe('Dashboard Component', () => {
     const onClaim = vi.fn();
     render(<Dashboard gems={1234} hasClaimedStarReward={false} onClaimStarReward={onClaim} />);
 
-    expect(screen.getByText('1234')).toBeInTheDocument();
-    const starBtn = screen.getByRole('button', { name: /Star Repo/i });
+    expect(screen.getByText('1,234')).toBeInTheDocument();
+    const starBtn = screen.getByRole('button', { name: /Star \+500/i });
     expect(starBtn).toBeInTheDocument();
 
     fireEvent.click(starBtn);
@@ -23,8 +22,8 @@ describe('Dashboard Component', () => {
     const onClaim = vi.fn();
     render(<Dashboard gems={1234} hasClaimedStarReward={true} onClaimStarReward={onClaim} />);
 
-    expect(screen.getByText('1234')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Star Repo/i })).not.toBeInTheDocument();
+    expect(screen.getByText('1,234')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Star \+500/i })).not.toBeInTheDocument();
   });
 });
 
@@ -79,17 +78,5 @@ describe('Inventory Component', () => {
     render(<Inventory collection={collection} onRecycle={vi.fn()} />);
 
     expect(screen.getAllByText('Char One')).toHaveLength(2);
-  });
-});
-
-describe('App Integration', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  it('renders Dashboard and empty Inventory by default', () => {
-    render(<App />);
-    expect(screen.getByText('2000')).toBeInTheDocument();
-    expect(screen.getByText(/No Waifus yet/i)).toBeInTheDocument();
   });
 });

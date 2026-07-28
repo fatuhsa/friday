@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { rollRarity, fetchCharacters, resetRateLimitTimer } from './gachaLogic';
+import { rollRarity, fetchCharacters } from './gachaLogic';
+import { pullFromPool } from '../db/characterDB';
+import type { StoredChar } from '../db/characterDB';
+
+vi.mock('../db/characterDB', () => ({
+  pullFromPool: vi.fn(),
+}));
+
+const MOCK_SSR: StoredChar = { id: 1, mal_id: 1, name: 'Spike Spiegel', imageUrl: 'https://example.com/spike.jpg', rank: 1, source: 'favorites' };
+const MOCK_SR: StoredChar = { id: 2, mal_id: 2, name: 'Faye Valentine', imageUrl: 'https://example.com/faye.jpg', rank: 26, source: 'favorites' };
+const MOCK_R: StoredChar = { id: 3, mal_id: 100, name: 'Random Char', imageUrl: 'https://example.com/random.jpg', rank: 50, source: 'random' };
 
 describe('gachaLogic', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    resetRateLimitTimer();
   });
 
   describe('rollRarity', () => {
@@ -21,11 +30,8 @@ describe('gachaLogic', () => {
 
     it('distributes rarities based on Math.random', () => {
       const spy = vi.spyOn(Math, 'random');
-      // < 5 -> SSR
       spy.mockReturnValueOnce(0.04);
-      // < 25 (e.g. 0.10 => 10) -> SR
       spy.mockReturnValueOnce(0.10);
-      // >= 25 (e.g. 0.50 => 50) -> R
       spy.mockReturnValueOnce(0.50);
 
       const rolls = rollRarity(3);
@@ -34,93 +40,29 @@ describe('gachaLogic', () => {
   });
 
   describe('fetchCharacters', () => {
-    it('returns empty array when rarities is empty ([]) and does not make fetch calls', async () => {
-      const globalFetch = vi.fn();
-      vi.stubGlobal('fetch', globalFetch);
-
+    it('returns empty array when rarities is empty', async () => {
+      vi.mocked(pullFromPool).mockResolvedValue([]);
       const result = await fetchCharacters([]);
       expect(result).toEqual([]);
-      expect(globalFetch).not.toHaveBeenCalled();
     });
 
-    it('fetches top characters for SSR and SR rarities', async () => {
-      const mockTopData = {
-        data: [
-          { mal_id: 1, name: 'Spike Spiegel', images: { jpg: { image_url: 'https://example.com/spike.jpg' } } },
-          { mal_id: 2, name: 'Faye Valentine', images: { jpg: { image_url: 'https://example.com/faye.jpg' } } },
-        ],
-      };
+    it('returns characters from the pool for each rarity', async () => {
+      vi.mocked(pullFromPool).mockResolvedValue([MOCK_SSR, MOCK_SR, MOCK_R]);
 
-      const globalFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => mockTopData,
-      });
-      vi.stubGlobal('fetch', globalFetch);
-
-      const result = await fetchCharacters(['SSR', 'SR']);
-
-      expect(globalFetch).toHaveBeenCalledWith('https://api.jikan.moe/v4/characters?order_by=favorites&sort=desc&limit=25', undefined);
-      expect(result).toHaveLength(2);
-      expect(result[0].rarity).toBe('SSR');
-      expect(result[1].rarity).toBe('SR');
-      expect(['Spike Spiegel', 'Faye Valentine']).toContain(result[0].name);
-      expect(result[0].imageUrl).toMatch(/https:\/\/example.com\//);
+      const result = await fetchCharacters(['SSR', 'SR', 'R']);
+      expect(result).toHaveLength(3);
+      expect(result[0].name).toBe('Spike Spiegel');
+      expect(result[1].name).toBe('Faye Valentine');
+      expect(result[2].name).toBe('Random Char');
     });
 
-    it('fetches random page characters for R rarity', async () => {
-      const mockRandomData = {
-        data: [
-          { mal_id: 100, name: 'Random Char', images: { jpg: { image_url: 'https://example.com/random.jpg' } } },
-        ],
-      };
-
-      const globalFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => mockRandomData,
-      });
-      vi.stubGlobal('fetch', globalFetch);
-
-      const result = await fetchCharacters(['R']);
-
-      expect(globalFetch).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/api\.jikan\.moe\/v4\/characters\?page=\d+$/), undefined);
-      expect(result).toHaveLength(1);
-      expect(result[0].rarity).toBe('R');
-      expect(result[0].name).toBe('Random Char');
-    });
-
-    it('handles non-200 HTTP response gracefully with fallback character', async () => {
-      const globalFetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 429,
-        statusText: 'Too Many Requests',
-      });
-      vi.stubGlobal('fetch', globalFetch);
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('falls back to hardcoded characters when pool fails', async () => {
+      vi.mocked(pullFromPool).mockRejectedValue(new Error('empty'));
 
       const result = await fetchCharacters(['SSR', 'R']);
-
       expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Unknown');
       expect(result[0].rarity).toBe('SSR');
-      expect(result[1].name).toBe('Unknown');
       expect(result[1].rarity).toBe('R');
-      expect(consoleSpy).toHaveBeenCalled();
-    });
-
-    it('handles fetch network error gracefully with fallback character', async () => {
-      const globalFetch = vi.fn().mockRejectedValue(new Error('Network Error'));
-      vi.stubGlobal('fetch', globalFetch);
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      const result = await fetchCharacters(['SSR', 'R']);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Unknown');
-      expect(result[0].rarity).toBe('SSR');
-      expect(result[1].name).toBe('Unknown');
-      expect(result[1].rarity).toBe('R');
-      expect(consoleSpy).toHaveBeenCalled();
     });
   });
 });
-

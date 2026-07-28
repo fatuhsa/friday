@@ -1,15 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-background: #101516;
+  --color-background: #0A0B1A;
+  --color-surface: #12132A;
   --color-neon-mint: #54E6D4;
+  --color-neon-purple: #7C3AED;
+  --color-neon-rose: #F43F5E;
+  --color-ssr: #54E6D4;
+  --color-sr: #7C3AED;
+  --color-r: #3B82F6;
+
+  --font-heading: 'Orbitron', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-muted: rgba(255, 255, 255, 0.05);
+  --color-border: rgba(255, 255, 255, 0.08);
 }
 
 @layer base {
+  html {
+    touch-action: manipulation;
+  }
+
   body {
     background-color: var(--color-background);
-    color: white;
-    font-family: sans-serif;
+    color: #E2E8F0;
+    font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
+    overscroll-behavior: contain;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
   }
 }
+
+
