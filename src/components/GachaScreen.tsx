@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Coins } from '@phosphor-icons/react';
 import { rollRarity, fetchCharacters } from '../utils/gachaLogic';
+import { CharacterDetailModal } from './CharacterDetailModal';
 import type { Character } from '../types';
 
 interface Props {
@@ -18,6 +19,7 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
   const [rollText, setRollText] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [resultChars, setResultChars] = useState<Character[]>([]);
+  const [detailTarget, setDetailTarget] = useState<Character | null>(null);
 
   useEffect(() => {
     if (!rolling) return;
@@ -59,36 +61,36 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
   };
 
   return (
-    <div className="p-4 bg-surface border-b border-border max-w-4xl mx-auto">
+    <div className="p-4 bg-surface border-b border-border">
       {rolling && (
-        <div className="text-center mb-4 py-4">
-          <span className="text-2xl font-bold font-heading text-accent animate-pulse">{rollText || '???'}</span>
-          <p className="text-xs text-gray-500 mt-1">Rolling...</p>
+        <div className="text-center mb-2 py-3">
+          <span className="text-xl font-bold font-heading text-accent animate-pulse">{rollText || '???'}</span>
         </div>
       )}
 
       {showResult && resultChars.length > 0 && (
-        <div className="mb-2 max-w-lg mx-auto relative cursor-pointer" onClick={() => setShowResult(false)}>
-          <div className={`gap-1.5 sm:gap-2 ${resultChars.length === 1 ? 'flex justify-center' : 'grid grid-cols-3 sm:grid-cols-5'}`}>
+        <div className="mb-2 relative max-w-lg mx-auto">
+          <div className={`${resultChars.length === 1 ? 'flex justify-center' : 'grid grid-cols-5 gap-1'}`}>
           {resultChars.map((c, i) => (
             <div
               key={i}
-              className={`text-center p-1 rounded animate-bounce overflow-hidden [animation-iteration-count:1] [animation-duration:0.6s] transition-all duration-200 hover:scale-105 hover:z-10 ${c.rarity === 'SSR' ? 'bg-card border-2 border-ssr hover:shadow-[0_0_20px_#FFD700]/40' : c.rarity === 'SR' ? 'bg-card border-2 border-sr hover:shadow-[0_0_20px_#A78BFA]/40' : 'bg-card border-2 border-r hover:shadow-[0_0_20px_#60A5FA]/30'}`}
+              onClick={() => setDetailTarget(c)}
+              className={`text-center p-0.5 rounded animate-bounce overflow-hidden [animation-iteration-count:1] [animation-duration:0.6s] transition-all duration-200 hover:scale-110 hover:z-10 cursor-pointer ${c.rarity === 'SSR' ? 'bg-card border-2 border-ssr hover:shadow-[0_0_20px_#FFD700]/40' : c.rarity === 'SR' ? 'bg-card border-2 border-sr hover:shadow-[0_0_20px_#A78BFA]/40' : 'bg-card border-2 border-r hover:shadow-[0_0_20px_#60A5FA]/30'}`}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              <div className="w-full aspect-[2/3] sm:aspect-[3/4] rounded bg-muted overflow-hidden">
+              <div className="w-full aspect-[2/3] rounded bg-muted overflow-hidden">
                 <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
-              <p className="text-[7px] sm:text-[10px] text-gray-100 truncate mt-0.5 leading-tight">{c.name}</p>
-              <span className={`text-[6px] sm:text-[9px] font-bold ${c.rarity === 'SSR' ? 'text-ssr' : c.rarity === 'SR' ? 'text-sr' : 'text-r'}`}>{c.rarity}</span>
+              <p className="text-[7px] text-gray-100 truncate mt-0.5 leading-tight">{c.name}</p>
+              <span className={`text-[6px] font-bold ${c.rarity === 'SSR' ? 'text-ssr' : c.rarity === 'SR' ? 'text-sr' : 'text-r'}`}>{c.rarity}</span>
             </div>
           ))}
           </div>
-          <p className="text-center text-[9px] sm:text-[10px] text-gray-500 mt-1">Tap anywhere to dismiss</p>
+          <p className="text-center text-[9px] text-gray-500 mt-1">Tap card to view details</p>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-4">
+      <div className="flex justify-center gap-3 mb-4">
         <button
           disabled={loading || gems < 160}
           onClick={() => handlePull(1, 160)}
@@ -117,6 +119,10 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
       </div>
       {errorMsg && (
         <p className="text-center mt-2 text-sm text-red-400">{errorMsg}</p>
+      )}
+
+      {detailTarget && (
+        <CharacterDetailModal character={detailTarget} onClose={() => setDetailTarget(null)} />
       )}
     </div>
   );

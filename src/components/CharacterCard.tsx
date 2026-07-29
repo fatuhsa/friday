@@ -6,16 +6,17 @@ const PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http
 interface Props {
   character: Character;
   onRecycle: (char: Character) => void;
+  onDetail?: (char: Character) => void;
 }
 
-export function CharacterCard({ character, onRecycle }: Props) {
+export function CharacterCard({ character, onRecycle, onDetail }: Props) {
   const [imgFailed, setImgFailed] = useState(!character.imageUrl);
   const glow = character.rarity === 'SSR' ? 'shadow-[0_0_12px_#FFD700]/40 border-ssr' :
                character.rarity === 'SR' ? 'shadow-[0_0_10px_#A78BFA]/40 border-sr' :
                'shadow-[0_0_5px_#60A5FA]/30 border-r';
 
   return (
-    <div className={`bg-card rounded-lg border-2 p-1.5 flex flex-col transition-all duration-200 hover:scale-[1.03] hover:z-10 hover:shadow-[0_0_20px_#C8A84E]/30 ${glow}`}>
+    <div className={`bg-card rounded-lg border-2 p-1.5 flex flex-col transition-all duration-200 hover:scale-[1.03] hover:z-10 hover:shadow-[0_0_20px_#C8A84E]/30 cursor-pointer ${glow}`} onClick={() => onDetail?.(character)}>
       <div className="relative w-full aspect-[3/4] rounded overflow-hidden bg-muted">
         <img src={imgFailed ? PLACEHOLDER : character.imageUrl} alt={character.name} className="w-full h-full object-cover" loading="lazy" onError={() => setImgFailed(true)} />
       </div>
