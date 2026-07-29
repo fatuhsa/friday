@@ -85,6 +85,9 @@ export function useGameState() {
       return [...c.slice(0, index), ...c.slice(index + 1)];
     });
 
+  const removeCharacters = (ids: number[]) =>
+    setCollection((c) => c.filter((char) => !ids.includes(char.id)));
+
   const claimStarReward = () => setHasClaimedStarReward(true);
 
   const markTriviaAnswered = (id: number) =>
@@ -99,6 +102,7 @@ export function useGameState() {
     deductGems,
     addCharacters,
     removeCharacter,
+    removeCharacters,
     claimStarReward,
     markTriviaAnswered,
   };

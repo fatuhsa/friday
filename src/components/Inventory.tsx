@@ -7,6 +7,7 @@ import { CharacterDetailModal } from './CharacterDetailModal';
 type SortKey = 'rarity' | 'name' | 'date';
 
 const RARITY_ORDER: Record<string, number> = { SSR: 0, SR: 1, R: 2 };
+const RARITY_COLORS: Record<string, string> = { SSR: 'text-ssr border-ssr/50', SR: 'text-sr border-sr/50', R: 'text-r border-r/50' };
 
 const SORT_BTNS: { key: SortKey; icon: typeof Star }[] = [
   { key: 'rarity', icon: Star },
@@ -17,6 +18,9 @@ const SORT_BTNS: { key: SortKey; icon: typeof Star }[] = [
 interface Props {
   collection: Character[];
   onRecycle: (char: Character) => void;
+  massRarity: { SSR: boolean; SR: boolean; R: boolean };
+  onMassRarityChange: (r: { SSR: boolean; SR: boolean; R: boolean }) => void;
+  onMassRecycle: () => void;
 }
 
 function sortFn(key: SortKey, dir: 'asc' | 'desc') {
@@ -29,12 +33,13 @@ function sortFn(key: SortKey, dir: 'asc' | 'desc') {
   };
 }
 
-export function Inventory({ collection, onRecycle }: Props) {
+export function Inventory({ collection, onRecycle, massRarity, onMassRarityChange, onMassRecycle }: Props) {
   const [detailTarget, setDetailTarget] = useState<Character | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('rarity');
   const [sortAsc, setSortAsc] = useState(true);
 
   const sorted = useMemo(() => [...collection].sort(sortFn(sortKey, sortAsc ? 'asc' : 'desc')), [collection, sortKey, sortAsc]);
+  const massCount = collection.filter((c) => massRarity[c.rarity as keyof typeof massRarity]).length;
 
   return (
     <>
@@ -61,6 +66,31 @@ export function Inventory({ collection, onRecycle }: Props) {
         >
           <ArrowsDownUp weight="bold" className="w-3.5 h-3.5" />
           {sortAsc ? 'A-Z' : 'Z-A'}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1.5 px-2 py-1.5 border-b border-border">
+        {(['SSR', 'SR', 'R'] as const).map((r) => (
+          <button
+            key={r}
+            onClick={() => onMassRarityChange({ ...massRarity, [r]: !massRarity[r] })}
+            className={`px-2.5 py-1 rounded text-[10px] font-bold border cursor-pointer transition-all min-h-[28px] ${
+              massRarity[r]
+                ? `${RARITY_COLORS[r]} bg-background`
+                : 'text-gray-500 border-transparent hover:text-gray-300'
+            }`}
+          >
+            {r}
+          </button>
+        ))}
+        <div className="text-[10px] text-gray-500 ml-1">{massCount} selected</div>
+        <div className="flex-1" />
+        <button
+          onClick={onMassRecycle}
+          disabled={massCount === 0}
+          className="text-[10px] font-bold text-accent3 border border-accent3/50 px-2.5 py-1 rounded cursor-pointer hover:bg-accent3 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed min-h-[28px]"
+        >
+          Recycle All
         </button>
       </div>
 

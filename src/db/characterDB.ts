@@ -176,6 +176,29 @@ export async function pullFromPool(rarities: ('SSR' | 'SR' | 'R')[]): Promise<St
   return results;
 }
 
+export async function getAllPool(): Promise<StoredChar[]> {
+  const db = await openDB();
+  const all: StoredChar[] = await new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_CHARS, 'readonly');
+    const req = tx.objectStore(STORE_CHARS).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
+  const seen = new Set<number>();
+  return all.filter((c) => {
+    if (seen.has(c.mal_id)) return false;
+    seen.add(c.mal_id);
+    return true;
+  }).sort((a, b) => a.rank - b.rank);
+}
+
+export function rarityByRank(rank: number): 'SSR' | 'SR' | 'R' {
+  if (rank <= 25) return 'SSR';
+  if (rank <= 100) return 'SR';
+  return 'R';
+}
+
 /* ─── Trivia ─── */
 
 const SEED_QUESTIONS: TriviaQuestion[] = [

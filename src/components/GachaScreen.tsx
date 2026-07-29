@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Coins } from '@phosphor-icons/react';
+import { Coins, Question, Wrench } from '@phosphor-icons/react';
 import { rollRarity, fetchCharacters } from '../utils/gachaLogic';
 import { CharacterDetailModal } from './CharacterDetailModal';
+import { PoolListModal } from './PoolListModal';
 import type { Character } from '../types';
 
 interface Props {
@@ -9,11 +10,15 @@ interface Props {
   onDeductGems: (amount: number) => boolean;
   onAddGems: (amount: number) => void;
   onCharactersPulled: (chars: Character[]) => void;
+  onTrivia: () => void;
+  triviaDisabled: boolean;
+  onDevGem: () => void;
 }
 
-export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled }: Props) {
+export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled, onTrivia, triviaDisabled, onDevGem }: Props) {
   const [loading, setLoading] = useState(false);
   const [showRates, setShowRates] = useState(false);
+  const [showPool, setShowPool] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [rolling, setRolling] = useState(false);
   const [rollText, setRollText] = useState('');
@@ -69,8 +74,8 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
       )}
 
       {showResult && resultChars.length > 0 && (
-        <div className="mb-2 relative max-w-lg mx-auto">
-          <div className={`${resultChars.length === 1 ? 'flex justify-center' : 'grid grid-cols-5 gap-1'}`}>
+        <div className="mb-2 relative max-w-lg mx-auto lg:max-w-2xl">
+          <div className={`${resultChars.length === 1 ? 'flex justify-center' : 'grid grid-cols-5 gap-1 md:gap-2 lg:gap-3'}`}>
           {resultChars.map((c, i) => (
             <div
               key={i}
@@ -90,7 +95,7 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
         </div>
       )}
 
-      <div className="flex justify-center gap-3 mb-4">
+      <div className="flex justify-center gap-3 mb-2">
         <button
           disabled={loading || gems < 160}
           onClick={() => handlePull(1, 160)}
@@ -107,12 +112,29 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
         </button>
       </div>
 
-      <div className="text-center">
+      <div className="flex justify-center gap-2 mb-4">
+        <button onClick={onTrivia} disabled={triviaDisabled} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent border border-accent/50 px-2.5 py-1.5 rounded hover:bg-accent hover:text-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer min-h-[28px]">
+          <Question weight="bold" className="w-3 h-3" />
+          Trivia Question
+          <Coins weight="fill" className="w-3 h-3" />
+        </button>
+        <button onClick={onDevGem} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent2 border border-accent2/50 px-2.5 py-1.5 rounded hover:bg-accent2 hover:text-background transition-colors cursor-pointer min-h-[28px]">
+          <Wrench weight="bold" className="w-3 h-3" />
+          Developer Addition
+          <Coins weight="fill" className="w-3 h-3" />
+        </button>
+      </div>
+
+      <div className="text-center space-y-1">
+        <button onClick={() => setShowPool(true)} className="text-gray-400 underline text-xs cursor-pointer hover:text-gray-200 transition-colors">
+          View Pool
+        </button>
+        <div>
         <button onClick={() => setShowRates(!showRates)} className="text-gray-500 underline text-xs cursor-pointer hover:text-gray-300 transition-colors">
           View Drop Rates
         </button>
         {showRates && (
-          <div className="mt-2 text-xs text-gray-400" data-testid="drop-rates">
+          <div className="text-xs text-gray-400" data-testid="drop-rates">
             SSR: 5% | SR: 20% | R: 75%
           </div>
         )}
@@ -124,6 +146,11 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
       {detailTarget && (
         <CharacterDetailModal character={detailTarget} onClose={() => setDetailTarget(null)} />
       )}
+
+      {showPool && (
+        <PoolListModal onClose={() => setShowPool(false)} />
+      )}
+    </div>
     </div>
   );
 }
