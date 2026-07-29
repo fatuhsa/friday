@@ -10,22 +10,24 @@ interface Props {
 
 export function CharacterCard({ character, onRecycle }: Props) {
   const [imgFailed, setImgFailed] = useState(!character.imageUrl);
-  const glow = character.rarity === 'SSR' ? 'shadow-[0_0_15px_#54E6D4] border-neon-mint' :
-               character.rarity === 'SR' ? 'shadow-[0_0_10px_purple] border-purple-500' :
-               'shadow-sm border-blue-500';
+  const glow = character.rarity === 'SSR' ? 'shadow-[0_0_12px_#FFD700]/40 border-ssr' :
+               character.rarity === 'SR' ? 'shadow-[0_0_10px_#A78BFA]/40 border-sr' :
+               'shadow-[0_0_5px_#60A5FA]/30 border-r';
 
   return (
-    <div className={`bg-[#101516] rounded-xl overflow-hidden border p-2 flex flex-col ${glow}`}>
-      <img src={imgFailed ? PLACEHOLDER : character.imageUrl} alt={character.name} className="w-full h-48 object-cover rounded" loading="lazy" onError={() => setImgFailed(true)} />
-      <div className="mt-2 text-center flex-grow">
-        <h3 className="text-white font-bold text-sm truncate">{character.name}</h3>
-        <span className={`text-xs font-bold ${character.rarity === 'SSR' ? 'text-neon-mint' : character.rarity === 'SR' ? 'text-purple-400' : 'text-blue-400'}`}>
+    <div className={`bg-card rounded-lg border-2 p-1.5 flex flex-col transition-all duration-200 hover:scale-[1.03] hover:z-10 hover:shadow-[0_0_20px_#C8A84E]/30 ${glow}`}>
+      <div className="relative w-full aspect-[3/4] rounded overflow-hidden bg-muted">
+        <img src={imgFailed ? PLACEHOLDER : character.imageUrl} alt={character.name} className="w-full h-full object-cover" loading="lazy" onError={() => setImgFailed(true)} />
+      </div>
+      <div className="mt-1.5 text-center flex-grow px-0.5">
+        <h3 className="text-gray-100 font-bold text-xs truncate">{character.name}</h3>
+        <span className={`text-[10px] font-bold ${character.rarity === 'SSR' ? 'text-ssr' : character.rarity === 'SR' ? 'text-sr' : 'text-r'}`}>
           {character.rarity}
         </span>
       </div>
-      <button 
+      <button
         onClick={() => onRecycle(character)}
-        className="mt-2 w-full py-1 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+        className="mt-1 w-full py-1 text-[10px] font-bold bg-accent3/80 hover:bg-accent3 text-white rounded transition-colors"
       >
         Recycle
       </button>

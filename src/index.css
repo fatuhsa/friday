@@ -1,18 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,600;0,700;0,900;1,600&family=Noto+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0A0B1A;
-  --color-surface: #12132A;
-  --color-neon-mint: #54E6D4;
-  --color-neon-purple: #7C3AED;
-  --color-neon-rose: #F43F5E;
-  --color-ssr: #54E6D4;
-  --color-sr: #7C3AED;
-  --color-r: #3B82F6;
+  --color-background: #0F111A;
+  --color-surface: #1A1C2B;
+  --color-card: #232638;
+  --color-accent: #C8A84E;
+  --color-accent2: #5B6ABF;
+  --color-accent3: #D94F4F;
+  --color-ssr: #FFD700;
+  --color-sr: #A78BFA;
+  --color-r: #60A5FA;
 
-  --font-heading: 'Orbitron', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Barlow', sans-serif;
+  --font-body: 'Noto Sans', sans-serif;
 
   --color-muted: rgba(255, 255, 255, 0.05);
   --color-border: rgba(255, 255, 255, 0.08);
@@ -25,8 +26,8 @@
 
   body {
     background-color: var(--color-background);
-    color: #E2E8F0;
-    font-family: var(--font-mono);
+    color: #E8E4D8;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: contain;
   }
@@ -35,5 +36,3 @@
     font-family: var(--font-heading);
   }
 }
-
-
