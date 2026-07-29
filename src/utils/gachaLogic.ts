@@ -57,12 +57,18 @@ export async function fetchCharacters(rarities: ('SSR' | 'SR' | 'R')[]): Promise
     });
   }
 
-  const chars = pool.map((c) => ({
+  const now = Date.now();
+  const chars = pool.map((c, i) => ({
     id: _charId++,
     name: c.name,
     imageUrl: c.imageUrl,
-    rarity: rarities[pool.indexOf(c)] || 'R',
+    rarity: rarities[i] || 'R',
+    ownedAt: now,
   }));
+  chars.sort((a, b) => {
+    const order = { SSR: 0, SR: 1, R: 2 };
+    return order[a.rarity] - order[b.rarity];
+  });
   saveCharId();
   return chars;
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Coins } from '@phosphor-icons/react';
+import { Coins, Question, Wrench } from '@phosphor-icons/react';
 import { rollRarity, fetchCharacters } from '../utils/gachaLogic';
+import { CharacterDetailModal } from './CharacterDetailModal';
+import { PoolListModal } from './PoolListModal';
 import type { Character } from '../types';
 
 interface Props {
@@ -8,16 +10,21 @@ interface Props {
   onDeductGems: (amount: number) => boolean;
   onAddGems: (amount: number) => void;
   onCharactersPulled: (chars: Character[]) => void;
+  onTrivia: () => void;
+  triviaDisabled: boolean;
+  onDevGem: () => void;
 }
 
-export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled }: Props) {
+export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled, onTrivia, triviaDisabled, onDevGem }: Props) {
   const [loading, setLoading] = useState(false);
   const [showRates, setShowRates] = useState(false);
+  const [showPool, setShowPool] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [rolling, setRolling] = useState(false);
   const [rollText, setRollText] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [resultChars, setResultChars] = useState<Character[]>([]);
+  const [detailTarget, setDetailTarget] = useState<Character | null>(null);
 
   useEffect(() => {
     if (!rolling) return;
@@ -48,10 +55,7 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
       setRolling(false);
       setResultChars(newChars);
       setShowResult(true);
-      setTimeout(() => {
-        onCharactersPulled(newChars);
-        setShowResult(false);
-      }, 200);
+      onCharactersPulled(newChars);
     } catch {
       setRolling(false);
       onAddGems(cost);
@@ -62,55 +66,75 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
   };
 
   return (
-    <div className="p-4 bg-[#101516] border-b border-gray-800">
+    <div className="p-4 bg-surface border-b border-border">
       {rolling && (
-        <div className="text-center mb-4 py-4">
-          <span className="text-2xl font-bold font-heading text-neon-mint animate-pulse">{rollText || '???'}</span>
-          <p className="text-xs text-gray-500 mt-1">Rolling...</p>
+        <div className="text-center mb-2 py-3">
+          <span className="text-xl font-bold font-heading text-accent animate-pulse">{rollText || '???'}</span>
         </div>
       )}
 
       {showResult && resultChars.length > 0 && (
-        <div className="mb-4 grid grid-cols-5 gap-2 max-w-sm mx-auto">
+        <div className="mb-2 relative max-w-lg mx-auto lg:max-w-2xl">
+          <div className={`${resultChars.length === 1 ? 'flex justify-center' : 'grid grid-cols-5 gap-1 md:gap-2 lg:gap-3'}`}>
           {resultChars.map((c, i) => (
             <div
               key={i}
-              className={`text-center p-1 rounded animate-bounce ${c.rarity === 'SSR' ? 'bg-neon-mint/10 border border-neon-mint' : c.rarity === 'SR' ? 'bg-purple-900/10 border border-purple-500' : 'bg-blue-900/10 border border-blue-500'}`}
+              onClick={() => setDetailTarget(c)}
+              className={`text-center p-0.5 rounded animate-bounce overflow-hidden [animation-iteration-count:1] [animation-duration:0.6s] transition-all duration-200 hover:scale-110 hover:z-10 cursor-pointer ${c.rarity === 'SSR' ? 'bg-card border-2 border-ssr hover:shadow-[0_0_20px_#FFD700]/40' : c.rarity === 'SR' ? 'bg-card border-2 border-sr hover:shadow-[0_0_20px_#A78BFA]/40' : 'bg-card border-2 border-r hover:shadow-[0_0_20px_#60A5FA]/30'}`}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              <div className="w-full aspect-square rounded bg-[#0A0B1A] flex items-center justify-center overflow-hidden">
+              <div className="w-full aspect-[2/3] rounded bg-muted overflow-hidden">
                 <img src={c.imageUrl} alt={c.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
-              <p className="text-[8px] text-white truncate mt-0.5">{c.name}</p>
-              <span className={`text-[7px] font-bold ${c.rarity === 'SSR' ? 'text-neon-mint' : c.rarity === 'SR' ? 'text-purple-400' : 'text-blue-400'}`}>{c.rarity}</span>
+              <p className="text-[7px] text-gray-100 truncate mt-0.5 leading-tight">{c.name}</p>
+              <span className={`text-[6px] font-bold ${c.rarity === 'SSR' ? 'text-ssr' : c.rarity === 'SR' ? 'text-sr' : 'text-r'}`}>{c.rarity}</span>
             </div>
           ))}
+          </div>
+          <p className="text-center text-[9px] text-gray-500 mt-1">Tap card to view details</p>
         </div>
       )}
 
-      <div className="flex justify-center gap-4 mb-4">
-        <button 
+      <div className="flex justify-center gap-3 mb-2">
+        <button
           disabled={loading || gems < 160}
           onClick={() => handlePull(1, 160)}
-          className="bg-neon-mint text-black px-6 py-3 rounded-xl font-bold disabled:opacity-50 cursor-pointer transition-all active:scale-95"
+          className="bg-accent text-background px-6 py-3 rounded font-bold disabled:opacity-50 cursor-pointer transition-all active:scale-95 min-h-[44px] border border-accent/50"
         >
           {loading && !showResult ? 'Pulling...' : <span className="inline-flex items-center gap-1.5">Pull x1 <Coins weight="fill" className="w-4 h-4" /> 160</span>}
         </button>
-        <button 
+        <button
           disabled={loading || gems < 1600}
           onClick={() => handlePull(10, 1600)}
-          className="bg-neon-mint text-black px-6 py-3 rounded-xl font-bold disabled:opacity-50 cursor-pointer transition-all active:scale-95"
+          className="bg-accent text-background px-6 py-3 rounded font-bold disabled:opacity-50 cursor-pointer transition-all active:scale-95 min-h-[44px] border border-accent/50"
         >
            {loading && !showResult ? 'Pulling...' : <span className="inline-flex items-center gap-1.5">Pull x10 <Coins weight="fill" className="w-4 h-4" /> 1600</span>}
         </button>
       </div>
-      
-      <div className="text-center">
-        <button onClick={() => setShowRates(!showRates)} className="text-gray-400 underline text-sm cursor-pointer">
+
+      <div className="flex justify-center gap-2 mb-4">
+        <button onClick={onTrivia} disabled={triviaDisabled} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent border border-accent/50 px-2.5 py-1.5 rounded hover:bg-accent hover:text-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer min-h-[28px]">
+          <Question weight="bold" className="w-3 h-3" />
+          Trivia Question
+          <Coins weight="fill" className="w-3 h-3" />
+        </button>
+        <button onClick={onDevGem} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent2 border border-accent2/50 px-2.5 py-1.5 rounded hover:bg-accent2 hover:text-background transition-colors cursor-pointer min-h-[28px]">
+          <Wrench weight="bold" className="w-3 h-3" />
+          Developer Addition
+          <Coins weight="fill" className="w-3 h-3" />
+        </button>
+      </div>
+
+      <div className="text-center space-y-1">
+        <button onClick={() => setShowPool(true)} className="text-gray-400 underline text-xs cursor-pointer hover:text-gray-200 transition-colors">
+          View Pool
+        </button>
+        <div>
+        <button onClick={() => setShowRates(!showRates)} className="text-gray-500 underline text-xs cursor-pointer hover:text-gray-300 transition-colors">
           View Drop Rates
         </button>
         {showRates && (
-          <div className="mt-2 text-xs text-gray-300" data-testid="drop-rates">
+          <div className="text-xs text-gray-400" data-testid="drop-rates">
             SSR: 5% | SR: 20% | R: 75%
           </div>
         )}
@@ -118,6 +142,15 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled 
       {errorMsg && (
         <p className="text-center mt-2 text-sm text-red-400">{errorMsg}</p>
       )}
+
+      {detailTarget && (
+        <CharacterDetailModal character={detailTarget} onClose={() => setDetailTarget(null)} />
+      )}
+
+      {showPool && (
+        <PoolListModal onClose={() => setShowPool(false)} />
+      )}
+    </div>
     </div>
   );
 }

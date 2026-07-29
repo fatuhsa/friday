@@ -7,6 +7,8 @@ import { TriviaModal } from './components/TriviaModal';
 import { countPool, seedPool, countTrivia, seedTrivia } from './db/characterDB';
 import type { Character } from './types';
 
+const GEM_VALUES: Record<string, number> = { SSR: 100, SR: 50, R: 15 };
+
 export default function App() {
   const state = useGameState();
   const [showTrivia, setShowTrivia] = useState(false);
@@ -14,6 +16,7 @@ export default function App() {
   const [seeding, setSeeding] = useState(true);
   const [seedProgress, setSeedProgress] = useState(0);
   const [seedError, setSeedError] = useState('');
+  const [massRarity, setMassRarity] = useState<{ SSR: boolean; SR: boolean; R: boolean }>({ SSR: false, SR: false, R: true });
 
   const startSeed = useCallback(async () => {
     setSeeding(true);
@@ -39,6 +42,23 @@ export default function App() {
 
   const handleRecycle = (char: Character) => setRecycleTarget(char);
 
+  const [massTarget, setMassTarget] = useState<{ ids: number[]; total: number } | null>(null);
+
+  const handleMassRecycle = (rarity: { SSR: boolean; SR: boolean; R: boolean }) => {
+    const selected = Object.entries(rarity).filter(([, v]) => v).map(([k]) => k);
+    const targets = state.collection.filter((c) => selected.includes(c.rarity));
+    if (!targets.length) return;
+    const total = targets.reduce((sum, c) => sum + GEM_VALUES[c.rarity], 0);
+    setMassTarget({ ids: targets.map((c) => c.id), total });
+  };
+
+  const confirmMassRecycle = () => {
+    if (!massTarget) return;
+    state.addGems(massTarget.total);
+    state.removeCharacters(massTarget.ids);
+    setMassTarget(null);
+  };
+
   const confirmRecycle = () => {
     if (!recycleTarget) return;
     state.removeCharacter(recycleTarget.id);
@@ -55,7 +75,7 @@ export default function App() {
   };
 
   const handleTriviaSuccess = (id: number) => {
-    state.addGems(100);
+    state.addGems(500);
     state.markTriviaAnswered(id);
     setShowTrivia(false);
   };
@@ -64,12 +84,12 @@ export default function App() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {seeding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="bg-surface border border-border rounded-xl p-6 w-[90%] max-w-sm text-center">
-            <h2 className="font-heading text-lg text-neon-mint mb-2">Seeding Waifus...</h2>
+          <div className="bg-surface border border-border rounded-lg p-6 w-[90%] max-w-sm text-center">
+            <h2 className="font-heading text-lg text-accent mb-2">Seeding Waifus...</h2>
             <p className="text-xs text-gray-400 mb-4">Fetching 200 waifus from MyAnimeList</p>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-neon-mint rounded-full transition-all duration-300"
+                className="h-full bg-accent rounded-full transition-all duration-300"
                 style={{ width: `${seedProgress}%` }}
               />
             </div>
@@ -79,7 +99,7 @@ export default function App() {
                 <p className="text-xs text-red-400 mb-2">{seedError}</p>
                 <button
                   onClick={startSeed}
-                  className="bg-neon-rose text-white px-4 py-2 rounded-lg text-sm font-bold min-h-[44px] cursor-pointer"
+                  className="bg-accent3 text-white px-4 py-2 rounded text-sm font-bold min-h-[44px] cursor-pointer"
                 >
                   Retry
                 </button>
@@ -91,19 +111,19 @@ export default function App() {
 
       <Dashboard gems={state.gems} hasClaimedStarReward={state.hasClaimedStarReward} onClaimStarReward={handleStar} />
 
-      <div className="bg-surface border-b border-border text-center py-2 flex justify-center gap-3 px-4">
-        <button onClick={() => setShowTrivia(true)} disabled={state.answeredTriviaIds.length >= 30} className="text-xs font-bold text-neon-mint border border-neon-mint px-4 py-2 rounded-full hover:bg-neon-mint hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer min-h-[44px]">
-          Trivia +100
-        </button>
-        <button onClick={() => state.addGems(10000)} className="text-xs font-bold text-neon-purple border border-neon-purple px-4 py-2 rounded-full hover:bg-neon-purple hover:text-white transition-colors cursor-pointer min-h-[44px]">
-          Dev +10k
-        </button>
-      </div>
-
-      <GachaScreen gems={state.gems} onDeductGems={state.deductGems} onAddGems={state.addGems} onCharactersPulled={state.addCharacters} />
+      <GachaScreen gems={state.gems} onDeductGems={state.deductGems} onAddGems={state.addGems} onCharactersPulled={state.addCharacters}
+        onTrivia={() => setShowTrivia(true)} triviaDisabled={state.answeredTriviaIds.length >= 30}
+        onDevGem={() => state.addGems(10000)}
+      />
 
       <div className="flex-grow">
-        <Inventory collection={state.collection} onRecycle={handleRecycle} />
+        <Inventory
+          collection={state.collection}
+          onRecycle={handleRecycle}
+          massRarity={massRarity}
+          onMassRarityChange={setMassRarity}
+          onMassRecycle={() => handleMassRecycle(massRarity)}
+        />
       </div>
 
       {showTrivia && (
@@ -115,26 +135,52 @@ export default function App() {
       )}
 
       {recycleTarget && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm text-center">
-            <h2 className="font-heading text-lg text-neon-mint mb-4">Recycle Character?</h2>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border-2 border-accent/30 rounded-lg p-6 w-full max-w-sm text-center">
+            <h2 className="font-heading text-lg text-accent mb-4">Recycle Character?</h2>
             <p className="text-gray-300 mb-2">Recycle <strong>{recycleTarget.name}</strong> for</p>
-            <p className="text-neon-mint font-bold text-xl mb-6">
+            <p className="text-accent font-bold text-xl mb-6">
               +{recycleTarget.rarity === 'SSR' ? 100 : recycleTarget.rarity === 'SR' ? 50 : 15} Gems
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setRecycleTarget(null)}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-lg cursor-pointer transition-colors min-h-[44px]"
+                className="flex-1 bg-card border border-border hover:border-accent/30 text-gray-300 py-3 rounded cursor-pointer transition-colors min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRecycle}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold cursor-pointer transition-colors min-h-[44px]"
+                className="flex-1 bg-accent3/80 hover:bg-accent3 text-white py-3 rounded font-bold cursor-pointer transition-colors min-h-[44px]"
                 data-testid="confirm-recycle"
               >
                 Recycle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {massTarget && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border-2 border-accent/30 rounded-lg p-6 w-full max-w-sm text-center">
+            <h2 className="font-heading text-lg text-accent mb-4">Mass Recycle?</h2>
+            <p className="text-gray-300 mb-2">Recycle <strong>{massTarget.ids.length} characters</strong> for</p>
+            <p className="text-accent font-bold text-xl mb-6">
+              +{massTarget.total} Gems
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setMassTarget(null)}
+                className="flex-1 bg-card border border-border hover:border-accent/30 text-gray-300 py-3 rounded cursor-pointer transition-colors min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmMassRecycle}
+                className="flex-1 bg-accent3/80 hover:bg-accent3 text-white py-3 rounded font-bold cursor-pointer transition-colors min-h-[44px]"
+              >
+                Recycle All
               </button>
             </div>
           </div>

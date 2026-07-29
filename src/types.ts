@@ -3,4 +3,5 @@ export interface Character {
   name: string;
   imageUrl: string;
   rarity: 'SSR' | 'SR' | 'R';
+  ownedAt?: number;
 }
