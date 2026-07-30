@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Coins, Question, Wrench } from '@phosphor-icons/react';
+import { Coins, Question } from '@phosphor-icons/react';
 import { rollRarity, fetchCharacters } from '../utils/gachaLogic';
 import { CharacterDetailModal } from './CharacterDetailModal';
 import { PoolListModal } from './PoolListModal';
@@ -12,10 +12,9 @@ interface Props {
   onCharactersPulled: (chars: Character[]) => void;
   onTrivia: () => void;
   triviaDisabled: boolean;
-  onDevGem: () => void;
 }
 
-export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled, onTrivia, triviaDisabled, onDevGem }: Props) {
+export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled, onTrivia, triviaDisabled }: Props) {
   const [loading, setLoading] = useState(false);
   const [showRates, setShowRates] = useState(false);
   const [showPool, setShowPool] = useState(false);
@@ -116,11 +115,6 @@ export function GachaScreen({ gems, onDeductGems, onAddGems, onCharactersPulled,
         <button onClick={onTrivia} disabled={triviaDisabled} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent border border-accent/50 px-2.5 py-1.5 rounded hover:bg-accent hover:text-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer min-h-[28px]">
           <Question weight="bold" className="w-3 h-3" />
           Trivia Question
-          <Coins weight="fill" className="w-3 h-3" />
-        </button>
-        <button onClick={onDevGem} className="inline-flex items-center gap-1 text-[10px] font-bold text-accent2 border border-accent2/50 px-2.5 py-1.5 rounded hover:bg-accent2 hover:text-background transition-colors cursor-pointer min-h-[28px]">
-          <Wrench weight="bold" className="w-3 h-3" />
-          Developer Addition
           <Coins weight="fill" className="w-3 h-3" />
         </button>
       </div>

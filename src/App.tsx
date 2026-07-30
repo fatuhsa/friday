@@ -113,7 +113,6 @@ export default function App() {
 
       <GachaScreen gems={state.gems} onDeductGems={state.deductGems} onAddGems={state.addGems} onCharactersPulled={state.addCharacters}
         onTrivia={() => setShowTrivia(true)} triviaDisabled={state.answeredTriviaIds.length >= 30}
-        onDevGem={() => state.addGems(10000)}
       />
 
       <div className="flex-grow">
